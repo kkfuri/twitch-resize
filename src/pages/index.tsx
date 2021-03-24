@@ -3,15 +3,13 @@ import Image from "image-js";
 
 import { Layout } from "@/components/Layout";
 import { Input } from "@/components/Input";
-import { ResizedItem } from "@/components/ResizedItem";
-import { downloadFile } from "@/utils/file";
-
-type ResizedImage = { [key: number]: string };
+import { ImageList } from "@/components/ImageList";
 
 export default function Home() {
   const [resizedImages, setResizedImages] = React.useState<ResizedImage[]>();
 
   async function onImageUpload(event: React.ChangeEvent<HTMLInputElement>) {
+    if (!event?.target?.files?.[0]) return undefined;
     const file = await event?.target.files?.[0].arrayBuffer();
     if (file) {
       const images: ResizedImage[] = [];
@@ -22,31 +20,18 @@ export default function Home() {
       });
       setResizedImages(images);
     }
+    return undefined;
   }
-
-  const isImageResized = resizedImages && resizedImages.length > 0;
 
   return (
     <Layout>
-      <Input name="image-input" accept="image/*" onChange={onImageUpload} />
-
-      {isImageResized && (
-        <>
-          <div className="flex flex-row items-center mt-12 space-x-8 justify-items-center">
-            {resizedImages?.map((item) => {
-              const key = Number(Object.keys(item)[0]);
-              const value = item[key] || "";
-              return (
-                <ResizedItem
-                  src={value}
-                  alt={["image", key].join("_")}
-                  size={key}
-                  onClick={() => downloadFile(value, key)}
-                />
-              );
-            })}
-          </div>
-        </>
+      {resizedImages && resizedImages?.length > 0 ? (
+        <ImageList
+          images={resizedImages}
+          onClickCancel={() => setResizedImages(undefined)}
+        />
+      ) : (
+        <Input name="image-input" accept="image/*" onChange={onImageUpload} />
       )}
     </Layout>
   );
